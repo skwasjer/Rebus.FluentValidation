@@ -44,7 +44,7 @@ namespace Rebus.FluentValidation
 					return Task.CompletedTask;
 				});
 
-			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Direction.Incoming));
+			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Directions.Incoming));
 
 			// Act
 			var testMessage = new TestMessage
@@ -90,7 +90,7 @@ namespace Rebus.FluentValidation
 					return Task.CompletedTask;
 				});
 
-			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Direction.Incoming));
+			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Directions.Incoming));
 
 			// Act
 			var testMessage = new TestMessage
@@ -121,7 +121,7 @@ namespace Rebus.FluentValidation
 			{
 				o.ValidateMessages(
 					_validatorFactoryMock.Object,
-					Direction.Incoming
+					Directions.Incoming
 				);
 				o.OnPipelineCompletion<IValidationFailed<TestMessage>>(failed =>
 				{

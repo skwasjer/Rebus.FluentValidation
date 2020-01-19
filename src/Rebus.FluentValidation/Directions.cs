@@ -6,7 +6,7 @@ namespace Rebus.FluentValidation
 	/// The validation direction.
 	/// </summary>
 	[Flags]
-	public enum Direction
+	public enum Directions
 	{
 		/// <summary>
 		/// Incoming messages.

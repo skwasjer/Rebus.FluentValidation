@@ -18,9 +18,9 @@ namespace Rebus.FluentValidation
 		/// </summary>
 		/// <param name="configurer">The options configurer.</param>
 		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
-		/// <param name="direction">The direction of validation.</param>
+		/// <param name="directions">The direction of validation.</param>
 		/// <returns>The options configurer to chain configuration.</returns>
-		public static void ValidateMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Direction direction)
+		public static void ValidateMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Directions directions)
 		{
 			if (configurer is null)
 			{
@@ -32,12 +32,12 @@ namespace Rebus.FluentValidation
 				throw new ArgumentNullException(nameof(validatorFactory));
 			}
 
-			if (direction.HasFlag(Direction.Outgoing))
+			if (directions.HasFlag(Directions.Outgoing))
 			{
 				configurer.Register(ctx => new ValidateOutgoingStep(validatorFactory));
 			}
 
-			if (direction.HasFlag(Direction.Incoming))
+			if (directions.HasFlag(Directions.Incoming))
 			{
 				configurer.Register(ctx =>
 				{
@@ -54,7 +54,7 @@ namespace Rebus.FluentValidation
 				IPipeline pipeline = ctx.Get<IPipeline>();
 				var pipelineInjector = new PipelineStepInjector(pipeline);
 
-				if (direction.HasFlag(Direction.Incoming))
+				if (directions.HasFlag(Directions.Incoming))
 				{
 					ValidateIncomingStep incomingStep = ctx.Get<ValidateIncomingStep>();
 					pipelineInjector.OnReceive(
@@ -64,7 +64,7 @@ namespace Rebus.FluentValidation
 					);
 				}
 
-				if (direction.HasFlag(Direction.Outgoing))
+				if (directions.HasFlag(Directions.Outgoing))
 				{
 					ValidateOutgoingStep outgoingStep = ctx.Get<ValidateOutgoingStep>();
 					pipelineInjector.OnSend(

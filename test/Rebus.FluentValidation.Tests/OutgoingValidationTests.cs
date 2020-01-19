@@ -20,7 +20,7 @@ namespace Rebus.FluentValidation
 		public async Task When_sending_invalid_message_it_should_throw()
 		{
 			var activator = new BuiltinHandlerActivator();
-			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Direction.Outgoing));
+			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Directions.Outgoing));
 
 			// Act
 			var testMessage = new TestMessage
@@ -39,7 +39,7 @@ namespace Rebus.FluentValidation
 		public async Task When_receiving_valid_message_it_should_be_wrapped_as_invalid_message()
 		{
 			var activator = new BuiltinHandlerActivator();
-			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Direction.Outgoing));
+			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Directions.Outgoing));
 
 			// Act
 			var testMessage = new TestMessage
