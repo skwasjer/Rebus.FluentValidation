@@ -30,7 +30,9 @@ namespace Rebus.FluentValidation
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="validatorFactory"></param>
-		public ValidateIncomingStep(ILog logger, IValidatorFactory validatorFactory)
+		internal ValidateIncomingStep(
+			ILog logger,
+			IValidatorFactory validatorFactory)
 		{
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_validatorFactory = validatorFactory ?? throw new ArgumentNullException(nameof(validatorFactory));
@@ -44,7 +46,7 @@ namespace Rebus.FluentValidation
 			Type messageType = body.GetType();
 
 			IValidator validator = _validatorFactory.GetValidator(messageType);
-			if (validator != null)
+			if (validator != null && validator.CanValidateInstancesOfType(messageType))
 			{
 				ValidationResult validationResult = await validator.ValidateAsync(body).ConfigureAwait(false);
 				if (!validationResult.IsValid)

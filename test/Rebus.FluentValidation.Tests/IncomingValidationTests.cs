@@ -20,13 +20,13 @@ using Xunit.Abstractions;
 
 namespace Rebus.FluentValidation
 {
-	public class OutgoingValidationTests
+	public class IncomingValidationTests
 	{
 		private readonly Mock<IValidatorFactory> _validatorFactoryMock;
 		private readonly XunitRebusLoggerFactory _loggerFactory;
 		private const string InputQueueName = "input";
 
-		public OutgoingValidationTests(ITestOutputHelper testOutputHelper)
+		public IncomingValidationTests(ITestOutputHelper testOutputHelper)
 		{
 			_validatorFactoryMock = new Mock<IValidatorFactory>();
 			_validatorFactoryMock
@@ -60,7 +60,7 @@ namespace Rebus.FluentValidation
 					return Task.CompletedTask;
 				});
 
-			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object));
+			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Direction.Incoming));
 
 			// Act
 			var testMessage = new TestMessage
@@ -106,7 +106,7 @@ namespace Rebus.FluentValidation
 					return Task.CompletedTask;
 				});
 
-			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object));
+			using IBus bus = CreateBus(activator, o => o.ValidateMessages(_validatorFactoryMock.Object, Direction.Incoming));
 
 			// Act
 			var testMessage = new TestMessage
@@ -135,7 +135,10 @@ namespace Rebus.FluentValidation
 
 			using IBus bus = CreateBus(activator, o =>
 			{
-				o.ValidateMessages(_validatorFactoryMock.Object);
+				o.ValidateMessages(
+					_validatorFactoryMock.Object,
+					Direction.Incoming
+				);
 				o.OnPipelineCompletion<IValidationFailed<TestMessage>>(failed =>
 				{
 					// This should happen.
