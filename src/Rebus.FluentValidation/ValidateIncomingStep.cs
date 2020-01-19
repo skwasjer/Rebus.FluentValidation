@@ -16,11 +16,10 @@ namespace Rebus.FluentValidation
 	[StepDocumentation("")]
 	public sealed class ValidateIncomingStep : IIncomingStep
 	{
-#pragma warning disable 1591
+		/// <summary>
+		/// Header key in which the validator type is saved when message validation fails.
+		/// </summary>
 		public const string ValidatorTypeKey = "ValidatorType";
-#pragma warning restore 1591
-
-		private static readonly IDictionary<Type, MethodInfo> WrapperMethodCache = new Dictionary<Type, MethodInfo>();
 
 		private readonly ILog _logger;
 		private readonly IValidatorFactory _validatorFactory;
@@ -53,46 +52,18 @@ namespace Rebus.FluentValidation
 				{
 					_logger.Debug("Message failed to validate.");
 
-					Type validatorType = validator.GetType();
-					object wrappedBody = WrapMessage(body, message.Headers, validationResult, validatorType);
-					var clonedHeaders = new Dictionary<string, string>(message.Headers)
-					{
-						[ValidatorTypeKey] = validatorType.FullName
-					};
-					context.Save(new Message(clonedHeaders, wrappedBody));
+					// TODO: select from multiple strategies how to handle it
+					// - as IValidationFailed
+					// - dead letter
+					// - poison?
+					// - ignore
+					var handler = new WrapAsValidationFailedStrategy();
+					await handler.ProcessAsync(context, next, validator, validationResult).ConfigureAwait(false);
+					return;
 				}
 			}
 
 			await next().ConfigureAwait(false);
-		}
-
-		private object WrapMessage(
-			object message,
-			IDictionary<string, string> headers,
-			ValidationResult validationResult,
-			Type validatorType
-		)
-		{
-			Type messageType = message.GetType();
-			// ReSharper disable once InvertIf
-			if (!WrapperMethodCache.TryGetValue(messageType, out MethodInfo methodInfo))
-			{
-				MethodInfo wrapMethodInfo = GetType().GetMethod(nameof(Wrap), BindingFlags.Static | BindingFlags.NonPublic);
-				methodInfo = wrapMethodInfo.MakeGenericMethod(messageType);
-				WrapperMethodCache[messageType] = methodInfo;
-			}
-
-			return methodInfo.Invoke(this, new[] { message, headers, validationResult, validatorType });
-		}
-
-		private static IValidationFailed<TMessage> Wrap<TMessage>(
-			TMessage message,
-			IDictionary<string, string> headers,
-			ValidationResult validationResult,
-			Type validatorType
-		)
-		{
-			return new ValidationFailedWrapper<TMessage>(message, headers, validationResult, validatorType);
 		}
 	}
 }
