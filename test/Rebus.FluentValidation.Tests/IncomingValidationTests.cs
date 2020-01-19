@@ -1,39 +1,23 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using FluentValidation;
-using Moq;
 using Rebus.Activation;
 using Rebus.Bus;
-using Rebus.Config;
 using Rebus.Exceptions;
 using Rebus.FluentValidation.Fixtures;
-using Rebus.FluentValidation.Logging;
 using Rebus.FluentValidation.PipelineCompletion;
-using Rebus.Routing.TypeBased;
-using Rebus.Transport.InMem;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Rebus.FluentValidation
 {
-	public class IncomingValidationTests
+	public class IncomingValidationTests : BusValidationTests
 	{
-		private readonly Mock<IValidatorFactory> _validatorFactoryMock;
-		private readonly XunitRebusLoggerFactory _loggerFactory;
-		private const string InputQueueName = "input";
-
 		public IncomingValidationTests(ITestOutputHelper testOutputHelper)
+			: base(testOutputHelper)
 		{
-			_validatorFactoryMock = new Mock<IValidatorFactory>();
-			_validatorFactoryMock
-				.Setup(m => m.GetValidator(typeof(TestMessage)))
-				.Returns(new TestMessageValidator());
-
-			_loggerFactory = new XunitRebusLoggerFactory(testOutputHelper);
 		}
 
 		[Fact]
@@ -169,21 +153,6 @@ namespace Rebus.FluentValidation
 				.Select(le => le.Exception)
 				.Should()
 				.Contain(ex => ex is MessageCouldNotBeDispatchedToAnyHandlersException);
-		}
-
-		private IBus CreateBus(IHandlerActivator activator, Action<OptionsConfigurer> optionsConfigurer)
-		{
-			return Configure
-				.With(activator)
-				.Logging(l => l.Use(_loggerFactory))
-				.Options(o =>
-				{
-					//o.LogPipeline(true);
-					optionsConfigurer?.Invoke(o);
-				})
-				.Transport(t => t.UseInMemoryTransport(new InMemNetwork(), InputQueueName))
-				.Routing(r => r.TypeBased().MapAssemblyOf<TestMessage>(InputQueueName))
-				.Start();
 		}
 	}
 }
