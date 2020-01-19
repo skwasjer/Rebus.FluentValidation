@@ -5,7 +5,7 @@ using FluentValidation.Results;
 namespace Rebus.FluentValidation
 {
 	/// <summary>
-	/// Describes the wrapper of a message that failed validation.
+	/// Describes the wrapper of a message that failed to validate.
 	/// </summary>
 	/// <typeparam name="TMessage"></typeparam>
 	public interface IValidationFailed<out TMessage>
