@@ -18,9 +18,8 @@ namespace Rebus.FluentValidation
 		/// </summary>
 		/// <param name="configurer">The options configurer.</param>
 		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
-		/// <param name="directions">The direction of validation.</param>
 		/// <returns>The options configurer to chain configuration.</returns>
-		public static void ValidateMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Directions directions)
+		public static void ValidateOutgoingMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory)
 		{
 			if (configurer is null)
 			{
@@ -32,47 +31,62 @@ namespace Rebus.FluentValidation
 				throw new ArgumentNullException(nameof(validatorFactory));
 			}
 
-			if (directions.HasFlag(Directions.Outgoing))
-			{
-				configurer.Register(ctx => new ValidateOutgoingStep(validatorFactory));
-			}
-
-			if (directions.HasFlag(Directions.Incoming))
-			{
-				configurer.Register(ctx =>
-				{
-					IRebusLoggerFactory loggerFactory = ctx.Get<IRebusLoggerFactory>();
-					return new ValidateIncomingStep(
-						loggerFactory.GetLogger<ValidateIncomingStep>(),
-						validatorFactory
-					);
-				});
-			}
+			configurer.Register(ctx => new ValidateOutgoingStep(validatorFactory));
 
 			configurer.Decorate<IPipeline>(ctx =>
 			{
 				IPipeline pipeline = ctx.Get<IPipeline>();
 				var pipelineInjector = new PipelineStepInjector(pipeline);
 
-				if (directions.HasFlag(Directions.Incoming))
-				{
-					ValidateIncomingStep incomingStep = ctx.Get<ValidateIncomingStep>();
-					pipelineInjector.OnReceive(
-						incomingStep,
-						PipelineRelativePosition.After,
-						typeof(DeserializeIncomingMessageStep)
-					);
-				}
+				ValidateOutgoingStep outgoingStep = ctx.Get<ValidateOutgoingStep>();
+				pipelineInjector.OnSend(
+					outgoingStep,
+					PipelineRelativePosition.Before,
+					typeof(AssignDefaultHeadersStep)
+				);
 
-				if (directions.HasFlag(Directions.Outgoing))
-				{
-					ValidateOutgoingStep outgoingStep = ctx.Get<ValidateOutgoingStep>();
-					pipelineInjector.OnSend(
-						outgoingStep,
-						PipelineRelativePosition.Before,
-						typeof(AssignDefaultHeadersStep)
-					);
-				}
+				return pipelineInjector;
+			});
+		}
+
+		/// <summary>
+		/// Enables message validation using FluentValidation.
+		/// </summary>
+		/// <param name="configurer">The options configurer.</param>
+		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
+		/// <returns>The options configurer to chain configuration.</returns>
+		public static void ValidateIncomingMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory)
+		{
+			if (configurer is null)
+			{
+				throw new ArgumentNullException(nameof(configurer));
+			}
+
+			if (validatorFactory is null)
+			{
+				throw new ArgumentNullException(nameof(validatorFactory));
+			}
+
+			configurer.Register(ctx =>
+			{
+				IRebusLoggerFactory loggerFactory = ctx.Get<IRebusLoggerFactory>();
+				return new ValidateIncomingStep(
+					loggerFactory.GetLogger<ValidateIncomingStep>(),
+					validatorFactory
+				);
+			});
+
+			configurer.Decorate<IPipeline>(ctx =>
+			{
+				IPipeline pipeline = ctx.Get<IPipeline>();
+				var pipelineInjector = new PipelineStepInjector(pipeline);
+
+				ValidateIncomingStep incomingStep = ctx.Get<ValidateIncomingStep>();
+				pipelineInjector.OnReceive(
+					incomingStep,
+					PipelineRelativePosition.After,
+					typeof(DeserializeIncomingMessageStep)
+				);
 
 				return pipelineInjector;
 			});
