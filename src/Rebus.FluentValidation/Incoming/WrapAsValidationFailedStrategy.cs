@@ -9,6 +9,9 @@ using Rebus.Pipeline;
 
 namespace Rebus.FluentValidation.Incoming
 {
+	/// <summary>
+	/// Wraps message in <see cref="IValidationFailed{TMessage}"/> when incoming message validation failed, so that it can be handled using separate handler.
+	/// </summary>
 	internal class WrapAsValidationFailedStrategy : IIncomingFailStrategy
 	{
 		private static readonly IDictionary<Type, MethodInfo> WrapperMethodCache = new Dictionary<Type, MethodInfo>();
