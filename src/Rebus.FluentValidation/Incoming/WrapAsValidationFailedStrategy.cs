@@ -7,9 +7,9 @@ using FluentValidation.Results;
 using Rebus.Messages;
 using Rebus.Pipeline;
 
-namespace Rebus.FluentValidation
+namespace Rebus.FluentValidation.Incoming
 {
-	internal class WrapAsValidationFailedStrategy : IFailStrategy
+	internal class WrapAsValidationFailedStrategy : IIncomingFailStrategy
 	{
 		private static readonly IDictionary<Type, MethodInfo> WrapperMethodCache = new Dictionary<Type, MethodInfo>();
 

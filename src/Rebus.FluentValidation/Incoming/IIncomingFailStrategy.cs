@@ -4,9 +4,9 @@ using FluentValidation;
 using FluentValidation.Results;
 using Rebus.Pipeline;
 
-namespace Rebus.FluentValidation
+namespace Rebus.FluentValidation.Incoming
 {
-	internal interface IFailStrategy
+	internal interface IIncomingFailStrategy
 	{
 		Task ProcessAsync(IncomingStepContext context, Func<Task> next, IValidator validator, ValidationResult validationResult);
 	}

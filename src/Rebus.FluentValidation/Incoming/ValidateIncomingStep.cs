@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
@@ -8,7 +6,7 @@ using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Pipeline;
 
-namespace Rebus.FluentValidation
+namespace Rebus.FluentValidation.Incoming
 {
 	/// <summary>
 	/// 

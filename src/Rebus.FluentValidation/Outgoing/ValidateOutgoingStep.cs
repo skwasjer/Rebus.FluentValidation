@@ -5,7 +5,7 @@ using FluentValidation.Results;
 using Rebus.Messages;
 using Rebus.Pipeline;
 
-namespace Rebus.FluentValidation
+namespace Rebus.FluentValidation.Outgoing
 {
 	/// <summary>
 	/// 

@@ -1,6 +1,8 @@
 ﻿using System;
 using FluentValidation;
 using Rebus.Config;
+using Rebus.FluentValidation.Incoming;
+using Rebus.FluentValidation.Outgoing;
 using Rebus.Logging;
 using Rebus.Pipeline;
 using Rebus.Pipeline.Receive;
