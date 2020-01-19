@@ -7,4 +7,12 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Rebus.TestHelpers" Version="5.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Rebus.FluentValidation\Rebus.FluentValidation.csproj" />
+  </ItemGroup>
+
 </Project>
