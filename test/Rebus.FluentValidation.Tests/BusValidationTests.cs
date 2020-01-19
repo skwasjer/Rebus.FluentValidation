@@ -6,6 +6,7 @@ using Rebus.Bus;
 using Rebus.Config;
 using Rebus.FluentValidation.Fixtures;
 using Rebus.FluentValidation.Logging;
+using Rebus.Logging;
 using Rebus.Routing.TypeBased;
 using Rebus.Transport.InMem;
 using Xunit.Abstractions;
@@ -26,14 +27,16 @@ namespace Rebus.FluentValidation
 				.Setup(m => m.GetValidator(typeof(TestMessage)))
 				.Returns(new TestMessageValidator());
 
-			_loggerFactory = new XunitRebusLoggerFactory(testOutputHelper);
+			_loggerFactory = testOutputHelper == null
+				? null
+				: new XunitRebusLoggerFactory(testOutputHelper);
 		}
 
 		protected IBus CreateBus(IHandlerActivator activator, Action<OptionsConfigurer> optionsConfigurer)
 		{
 			return Configure
 				.With(activator)
-				.Logging(l => l.Use(_loggerFactory))
+				.Logging(l => l.Use(_loggerFactory ?? (IRebusLoggerFactory)new NullLoggerFactory()))
 				.Options(o =>
 				{
 					//o.LogPipeline(true);
