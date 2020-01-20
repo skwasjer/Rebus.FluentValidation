@@ -44,26 +44,33 @@ namespace Rebus.FluentValidation
 					return Task.CompletedTask;
 				});
 
-			using IBus bus = CreateBus(activator, o => o.ValidateIncomingMessages(_validatorFactoryMock.Object));
-
-			// Act
-			var testMessage = new TestMessage
+			using (IBus bus = CreateBus(activator, o => o.ValidateIncomingMessages(_validatorFactoryMock.Object)))
 			{
-				ShouldPassValidation = false
-			};
 
-			await bus.Send(testMessage);
+				// Act
+				var testMessage = new TestMessage
+				{
+					ShouldPassValidation = false
+				};
 
-			// Assert
-			sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
+				await bus.Send(testMessage);
 
-			receivedMessage.Should().BeNull();
+				// Assert
+				sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
 
-			failedMessage.Should().NotBeNull();
-			failedMessage.ValidationResult.Should().NotBeNull();
-			failedMessage.Headers.Should().NotBeNull().And.NotBeEmpty();
-			failedMessage.Message.IsValidated.Should().BeTrue();
-			failedMessage.ValidatorType.Should().Be<TestMessageValidator>();
+				receivedMessage.Should().BeNull();
+
+				failedMessage.Should().NotBeNull();
+				failedMessage.ValidationResult.Should().NotBeNull();
+				failedMessage.Headers.Should().NotBeNull().And.NotBeEmpty();
+				failedMessage.Message.IsValidated.Should().BeTrue();
+				failedMessage.ValidatorType.Should().Be<TestMessageValidator>();
+			}
+
+			_loggerFactory.LogEvents
+				.Select(le => le.Exception)
+				.Should()
+				.NotContain(ex => ex is MessageCouldNotBeDispatchedToAnyHandlersException);
 		}
 
 		[Fact]
@@ -90,23 +97,27 @@ namespace Rebus.FluentValidation
 					return Task.CompletedTask;
 				});
 
-			using IBus bus = CreateBus(activator, o => o.ValidateIncomingMessages(_validatorFactoryMock.Object));
-
-			// Act
-			var testMessage = new TestMessage
+			using (IBus bus = CreateBus(activator, o => o.ValidateIncomingMessages(_validatorFactoryMock.Object)))
 			{
-				ShouldPassValidation = true
-			};
 
-			await bus.Send(testMessage);
+				// Act
+				var testMessage = new TestMessage { ShouldPassValidation = true };
 
-			// Assert
-			sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
+				await bus.Send(testMessage);
 
-			failedMessage.Should().BeNull();
+				// Assert
+				sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
 
-			receivedMessage.Should().NotBeNull();
-			receivedMessage.IsValidated.Should().BeTrue();
+				failedMessage.Should().BeNull();
+
+				receivedMessage.Should().NotBeNull();
+				receivedMessage.IsValidated.Should().BeTrue();
+			}
+
+			_loggerFactory.LogEvents
+				.Select(le => le.Exception)
+				.Should()
+				.NotContain(ex => ex is MessageCouldNotBeDispatchedToAnyHandlersException);
 		}
 
 		[Fact]
@@ -117,7 +128,7 @@ namespace Rebus.FluentValidation
 
 			var activator = new BuiltinHandlerActivator();
 
-			using IBus bus = CreateBus(activator, o =>
+			using (IBus bus = CreateBus(activator, o =>
 			{
 				o.ValidateIncomingMessages(_validatorFactoryMock.Object);
 				o.OnPipelineCompletion<IValidationFailed<TestMessage>>(failed =>
@@ -126,26 +137,27 @@ namespace Rebus.FluentValidation
 					failedMessage = failed;
 					sync.Set();
 				});
-			});
-
-			// Act
-			var testMessage = new TestMessage
+			}))
 			{
-				ShouldPassValidation = false
-			};
 
-			await bus.Send(testMessage);
+				// Act
+				var testMessage = new TestMessage
+				{
+					ShouldPassValidation = false
+				};
 
-			// Assert
-			sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
+				await bus.Send(testMessage);
 
-			failedMessage.Should().NotBeNull();
-			failedMessage.ValidationResult.Should().NotBeNull();
-			failedMessage.Headers.Should().NotBeNull().And.NotBeEmpty();
-			failedMessage.Message.IsValidated.Should().BeTrue();
-			failedMessage.ValidatorType.Should().Be<TestMessageValidator>();
+				// Assert
+				sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
 
-			bus.Dispose();
+				failedMessage.Should().NotBeNull();
+				failedMessage.ValidationResult.Should().NotBeNull();
+				failedMessage.Headers.Should().NotBeNull().And.NotBeEmpty();
+				failedMessage.Message.IsValidated.Should().BeTrue();
+				failedMessage.ValidatorType.Should().Be<TestMessageValidator>();
+			}
+
 			_loggerFactory.LogEvents
 				.Select(le => le.Exception)
 				.Should()
