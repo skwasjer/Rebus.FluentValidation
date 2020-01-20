@@ -4,19 +4,27 @@ using System.Reflection;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
+using Rebus.Handlers;
+using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Pipeline;
 
-namespace Rebus.FluentValidation.Incoming
+namespace Rebus.FluentValidation.Incoming.Handlers
 {
 	/// <summary>
-	/// Wraps message in <see cref="IValidationFailed{TMessage}"/> when incoming message validation failed, so that it can be handled using separate handler.
+	/// Wraps the message in <see cref="IValidationFailed{TMessage}"/>, so that it can be handled using a <see cref="IHandleMessages{TMessage}"/> handler.
 	/// </summary>
-	internal class WrapAsValidationFailedStrategy : IIncomingFailStrategy
+	internal class WrapAsValidationFailed : IValidationFailedStrategy
 	{
+		private readonly ILog _logger;
 		private static readonly IDictionary<Type, MethodInfo> WrapperMethodCache = new Dictionary<Type, MethodInfo>();
 
-		public Task ProcessAsync(IncomingStepContext context, Func<Task> next, IValidator validator, ValidationResult validationResult)
+		public WrapAsValidationFailed(ILog logger)
+		{
+			_logger = logger;
+		}
+
+		public Task ProcessAsync(StepContext context, Func<Task> next, IValidator validator, ValidationResult validationResult)
 		{
 			Message message = context.Load<Message>();
 			object body = message.Body;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using FluentValidation.Results;
 
-namespace Rebus.FluentValidation
+namespace Rebus.FluentValidation.Incoming.Handlers
 {
 	internal class ValidationFailedWrapper<TMessage> : IValidationFailed<TMessage>
 	{

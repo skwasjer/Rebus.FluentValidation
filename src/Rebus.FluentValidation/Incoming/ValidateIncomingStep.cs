@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
+using Rebus.FluentValidation.Incoming.Handlers;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Pipeline;
@@ -21,18 +23,27 @@ namespace Rebus.FluentValidation.Incoming
 
 		private readonly ILog _logger;
 		private readonly IValidatorFactory _validatorFactory;
+		private readonly IReadOnlyDictionary<Type, IValidationFailedStrategy> _failHandlers;
+		private readonly IValidationFailedStrategy _defaultFailHandler;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ValidateIncomingStep"/>.
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="validatorFactory"></param>
+		/// <param name="failHandlers"></param>
+		/// <param name="defaultFailHandler"></param>
 		internal ValidateIncomingStep(
 			ILog logger,
-			IValidatorFactory validatorFactory)
+			IValidatorFactory validatorFactory,
+			IReadOnlyDictionary<Type, IValidationFailedStrategy> failHandlers,
+			IValidationFailedStrategy defaultFailHandler
+		)
 		{
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_validatorFactory = validatorFactory ?? throw new ArgumentNullException(nameof(validatorFactory));
+			_failHandlers = failHandlers;
+			_defaultFailHandler = defaultFailHandler ?? throw new ArgumentNullException(nameof(defaultFailHandler));
 		}
 
 		/// <inheritdoc />
@@ -50,12 +61,11 @@ namespace Rebus.FluentValidation.Incoming
 				{
 					_logger.Debug("Message failed to validate.");
 
-					// TODO: select from multiple strategies how to handle it
-					// - as IValidationFailed
-					// - dead letter
-					// - poison?
-					// - ignore
-					var handler = new WrapAsValidationFailedStrategy();
+					if (!_failHandlers.TryGetValue(messageType, out IValidationFailedStrategy handler))
+					{
+						handler = _defaultFailHandler;
+					}
+
 					await handler.ProcessAsync(context, next, validator, validationResult).ConfigureAwait(false);
 					return;
 				}
