@@ -1,6 +1,6 @@
 # Rebus.FluentValidation
 
-...
+Message validation using [FluentValidation](https://fluentvalidation.net/) for [Rebus](https://github.com/rebus-org/Rebus).
 
 ---
 
@@ -15,5 +15,35 @@
 ## Usage example ###
 
 ```csharp
+// FluentValidation factory, get from IoC container of choice.
+IValidatorFactory validatorFactory = .. 
+
+// Configure Rebus handlers and options.
+Configure
+    .With(..)
+    .Options(o =>	{
+        // Throws on Send/Publish.
+        o.ValidateOutgoingMessages(validatorFactory);
+        // Configure strategy per incoming message.
+        o.ValidateIncomingMessages(validatorFactory, v =>
+        {
+            // Move messages of type MessageType1 to error queue.
+            v.DeadLetter<MessageType1>();
+            // Drop messages of type MessageType2.
+            v.Drop<MessageType2>();
+            // Do nothing to messages of type MessageType3 (just log warn).
+            v.PassThrough<MessageType3>();
+        });
+    });
+
+// If not explicitly configured, messages will be wrapped in IValidationFailed<> 
+// and can be handled using custom handler logic:
+public class MyService : IHandleMessages<IValidationFailed<MessageType4>>
+{
+    Task Handle(IValidationFailed<MessageType4> message)
+    {
+        // Custom handler for validation failure.
+    }
+}
 ```
 
