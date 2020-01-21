@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Rebus.Logging;
@@ -7,34 +8,66 @@ using Xunit;
 
 namespace Rebus.FluentValidation.Incoming.Handlers
 {
-	public class DeadLetterTests
+	public class DeadLetterTests : ValidationFailedStrategyTests
 	{
-		[Fact]
-		public void When_creating_with_null_logger_it_should_throw()
+		private readonly Mock<IErrorHandler> _errorHandlerMock;
+		private readonly DeadLetter _sut;
+
+		public DeadLetterTests()
 		{
-			ILog logger = null;
+			_errorHandlerMock = new Mock<IErrorHandler>();
 
-			// ReSharper disable once ExpressionIsAlwaysNull
-			// ReSharper disable once ObjectCreationAsStatement
-			Action act = () => new DeadLetter(logger, Mock.Of<IErrorHandler>());
-
-			// Assert
-			act.Should().Throw<ArgumentNullException>()
-				.Which.ParamName.Should().Be(nameof(logger));
+			_sut = new DeadLetter(Logger, _errorHandlerMock.Object);
 		}
 
-		[Fact]
-		public void When_creating_with_null_errorHandler_it_should_throw()
+		public class When_creating : DeadLetterTests
 		{
-			IErrorHandler errorHandler = null;
+			[Fact]
+			public void With_null_logger_it_should_throw()
+			{
+				ILog logger = null;
 
-			// ReSharper disable once ExpressionIsAlwaysNull
-			// ReSharper disable once ObjectCreationAsStatement
-			Action act = () => new DeadLetter(Mock.Of<ILog>(), errorHandler);
+				// ReSharper disable once ExpressionIsAlwaysNull
+				// ReSharper disable once ObjectCreationAsStatement
+				Action act = () => new DeadLetter(logger, Mock.Of<IErrorHandler>());
 
-			// Assert
-			act.Should().Throw<ArgumentNullException>()
-				.Which.ParamName.Should().Be(nameof(errorHandler));
+				// Assert
+				act.Should()
+					.Throw<ArgumentNullException>()
+					.Which.ParamName.Should()
+					.Be(nameof(logger));
+			}
+
+			[Fact]
+			public void With_null_errorHandler_it_should_throw()
+			{
+				IErrorHandler errorHandler = null;
+
+				// ReSharper disable once ExpressionIsAlwaysNull
+				// ReSharper disable once ObjectCreationAsStatement
+				Action act = () => new DeadLetter(Mock.Of<ILog>(), errorHandler);
+
+				// Assert
+				act.Should()
+					.Throw<ArgumentNullException>()
+					.Which.ParamName.Should()
+					.Be(nameof(errorHandler));
+			}
+		}
+
+		public class When_processing : DeadLetterTests
+		{
+			[Fact]
+			public async Task It_should_not_call_next()
+			{
+				var nextMock = new Mock<Func<Task>>();
+
+				// Act
+				await _sut.ProcessAsync(StepContext, nextMock.Object, ValidatorMock.Object, ValidationResult);
+
+				// Assert
+				nextMock.Verify(func => func(), Times.Never);
+			}
 		}
 	}
 }
