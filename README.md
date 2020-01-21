@@ -32,7 +32,8 @@ Configure
             v.DeadLetter<MessageType1>();
             // Drop messages of type MessageType2.
             v.Drop<MessageType2>();
-            // Do nothing to messages of type MessageType3 (just log warn).
+            // Do nothing to messages of type MessageType3 (just log warn)
+            // allowing them to be handled normally with IHandleMessages<MessageType3>
             v.PassThrough<MessageType3>();
         });
     });
