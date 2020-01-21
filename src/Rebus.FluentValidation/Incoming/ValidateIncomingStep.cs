@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
-using Rebus.FluentValidation.Incoming.Handlers;
+using Rebus.Bus;
+using Rebus.Extensions;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Pipeline;
@@ -57,9 +58,13 @@ namespace Rebus.FluentValidation.Incoming
 			if (validator != null && validator.CanValidateInstancesOfType(messageType))
 			{
 				ValidationResult validationResult = await validator.ValidateAsync(body).ConfigureAwait(false);
+
+				Type validatorType = validator.GetType();
+				message.Headers[ValidatorTypeKey] = validatorType.GetSimpleAssemblyQualifiedName();
+
 				if (!validationResult.IsValid)
 				{
-					_logger.Debug("Message failed to validate.");
+					_logger.Debug($"Message {{MessageId}} failed to validate.{Environment.NewLine}{{ValidationResult}}", message.GetMessageId(), validationResult);
 
 					if (!_failHandlers.TryGetValue(messageType, out IValidationFailedStrategy handler))
 					{

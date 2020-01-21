@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
+using Rebus.Bus;
 using Rebus.Handlers;
 using Rebus.Logging;
 using Rebus.Messages;
@@ -29,13 +30,11 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 			Message message = context.Load<Message>();
 			object body = message.Body;
 
+			_logger.Debug($"Validation -> {{MessageType}} {{MessageId}} is configured to be wrapped as {typeof(IValidationFailed<>).FullName}.", message.GetMessageType(), message.GetMessageId());
+
 			Type validatorType = validator.GetType();
 			object wrappedBody = WrapMessage(body, message.Headers, validationResult, validatorType);
-			var clonedHeaders = new Dictionary<string, string>(message.Headers)
-			{
-				[ValidateIncomingStep.ValidatorTypeKey] = validatorType.FullName
-			};
-			context.Save(new Message(clonedHeaders, wrappedBody));
+			context.Save(new Message(message.Headers, wrappedBody));
 
 			return next();
 		}

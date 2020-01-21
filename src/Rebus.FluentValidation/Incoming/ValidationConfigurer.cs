@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Rebus.Config;
 using Rebus.FluentValidation.Incoming.Handlers;
-using Rebus.Handlers;
 using Rebus.Logging;
 using Rebus.Retry;
 
@@ -16,11 +15,14 @@ namespace Rebus.FluentValidation.Incoming
 	{
 		private readonly OptionsConfigurer _configurer;
 		private readonly Dictionary<Type, IValidationFailedStrategy> _handlers;
+		private readonly Dictionary<Type, Type> _registeredHandlerTypes;
 
 		internal ValidationConfigurer(OptionsConfigurer configurer)
 		{
 			_configurer = configurer;
 			_handlers = new Dictionary<Type, IValidationFailedStrategy>();
+			_registeredHandlerTypes = new Dictionary<Type, Type>();
+
 			_configurer.Register(_ => (IReadOnlyDictionary<Type, IValidationFailedStrategy>)new ReadOnlyDictionary<Type, IValidationFailedStrategy>(_handlers));
 
 			_configurer.Register(ctx => new Drop(
@@ -57,15 +59,6 @@ namespace Rebus.FluentValidation.Incoming
 		}
 
 		/// <summary>
-		/// Wraps messages of type <typeparamref name="TMessage" /> that failed to validate into an <see cref="IValidationFailed{TMessage}"/> wrapper message, allowing it to be handled separately using <see cref="IHandleMessages{TMessage}"/>.
-		/// </summary>
-		/// <typeparam name="TMessage">The message type.</typeparam>
-		public void HandleAsFailed<TMessage>()
-		{
-			OnValidationFailed<TMessage, WrapAsValidationFailed>();
-		}
-
-		/// <summary>
 		/// Only emits a warning for messages of type <typeparamref name="TMessage" /> that failed to validate, but otherwise lets the message pass through as it normally would.
 		/// </summary>
 		/// <typeparam name="TMessage">The message type.</typeparam>
@@ -74,12 +67,20 @@ namespace Rebus.FluentValidation.Incoming
 			OnValidationFailed<TMessage, PassThrough>();
 		}
 
-		private void OnValidationFailed<TMessage, TValidationFailedHandler>()
-			where TValidationFailedHandler : IValidationFailedStrategy
+		private void OnValidationFailed<TMessage, TValidationFailedStrategy>()
+			where TValidationFailedStrategy : IValidationFailedStrategy
 		{
+			Type messageType = typeof(TMessage);
+			if (_registeredHandlerTypes.TryGetValue(messageType, out Type registeredHandlerType))
+			{
+				throw new ArgumentException($"The message type '{messageType.FullName}' is already configured to be handled by '{registeredHandlerType.FullName}'.");
+			}
+
+			_registeredHandlerTypes[messageType] = typeof(TValidationFailedStrategy);
+
 			_configurer.Decorate(ctx =>
 			{
-				_handlers[typeof(TMessage)] = ctx.Get<TValidationFailedHandler>();
+				_handlers[messageType] = ctx.Get<TValidationFailedStrategy>();
 				return (IReadOnlyDictionary<Type, IValidationFailedStrategy>)_handlers;
 			});
 		}
