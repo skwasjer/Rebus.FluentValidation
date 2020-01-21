@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentValidation;
@@ -32,7 +33,11 @@ namespace Rebus.FluentValidation
 
 			// Assert
 			ValidationException ex = (await act.Should().ThrowAsync<ValidationException>()).Which;
-			ex.Errors.Should().HaveCount(1);
+			ex.Errors.Should()
+				.HaveCount(1)
+				.And.Subject.Single()
+				.PropertyName.Should()
+				.Be(nameof(TestMessage.ShouldPassValidation));
 		}
 
 		[Fact]
