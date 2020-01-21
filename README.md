@@ -21,7 +21,8 @@ IValidatorFactory validatorFactory = ..
 // Configure Rebus handlers and options.
 Configure
     .With(..)
-    .Options(o =>	{
+    .Options(o =>
+    {
         // Throws on Send/Publish.
         o.ValidateOutgoingMessages(validatorFactory);
         // Configure strategy per incoming message.
