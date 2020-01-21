@@ -19,7 +19,7 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 
 		public PassThrough(ILog logger)
 		{
-			_logger = logger;
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 		public Task ProcessAsync(StepContext context, Func<Task> next, IValidator validator, ValidationResult validationResult)

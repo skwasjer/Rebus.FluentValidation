@@ -23,8 +23,8 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 
 		public DeadLetter(ILog logger, IErrorHandler errorHandler)
 		{
-			_logger = logger;
-			_errorHandler = errorHandler;
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			_errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
 		}
 
 		public Task ProcessAsync(StepContext context, Func<Task> next, IValidator validator, ValidationResult validationResult)
