@@ -44,30 +44,30 @@ namespace Rebus.FluentValidation.Incoming
 		/// Automatically moves messages of type <typeparamref name="TMessage" /> that failed to validate to the error queue.
 		/// </summary>
 		/// <typeparam name="TMessage">The message type.</typeparam>
-		public void DeadLetter<TMessage>()
+		public ValidationConfigurer DeadLetter<TMessage>()
 		{
-			OnValidationFailed<TMessage, DeadLetter>();
+			return OnValidationFailed<TMessage, DeadLetter>();
 		}
 
 		/// <summary>
 		/// Drops messages of type <typeparamref name="TMessage" /> that failed to validate.
 		/// </summary>
 		/// <typeparam name="TMessage">The message type.</typeparam>
-		public void Drop<TMessage>()
+		public ValidationConfigurer Drop<TMessage>()
 		{
-			OnValidationFailed<TMessage, Drop>();
+			return OnValidationFailed<TMessage, Drop>();
 		}
 
 		/// <summary>
 		/// Only emits a warning for messages of type <typeparamref name="TMessage" /> that failed to validate, but otherwise lets the message pass through as it normally would.
 		/// </summary>
 		/// <typeparam name="TMessage">The message type.</typeparam>
-		public void PassThrough<TMessage>()
+		public ValidationConfigurer PassThrough<TMessage>()
 		{
-			OnValidationFailed<TMessage, PassThrough>();
+			return OnValidationFailed<TMessage, PassThrough>();
 		}
 
-		private void OnValidationFailed<TMessage, TValidationFailedStrategy>()
+		private ValidationConfigurer OnValidationFailed<TMessage, TValidationFailedStrategy>()
 			where TValidationFailedStrategy : IValidationFailedStrategy
 		{
 			Type messageType = typeof(TMessage);
@@ -83,6 +83,8 @@ namespace Rebus.FluentValidation.Incoming
 				_handlers[messageType] = ctx.Get<TValidationFailedStrategy>();
 				return (IReadOnlyDictionary<Type, IValidationFailedStrategy>)_handlers;
 			});
+
+			return this;
 		}
 	}
 }
