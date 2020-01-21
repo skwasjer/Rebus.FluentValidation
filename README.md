@@ -15,7 +15,16 @@ Message validation using [FluentValidation](https://fluentvalidation.net/) for [
 ## Usage example ###
 
 ```csharp
-// FluentValidation factory, get from IoC container of choice.
+// Create validators and register with FluentValidation using IoC container of choice.
+public class MessageType1Validator : AbstractValidator<MessageType1>
+{
+    public MessageType1Validator()
+    {
+        RuleFor(x => ...);
+    }
+}
+
+// Get FluentValidation factory from IoC container.
 IValidatorFactory validatorFactory = .. 
 
 // Configure Rebus handlers and options.
