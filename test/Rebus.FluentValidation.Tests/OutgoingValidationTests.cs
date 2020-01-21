@@ -36,7 +36,7 @@ namespace Rebus.FluentValidation
 		}
 
 		[Fact]
-		public async Task When_receiving_valid_message_it_should_be_wrapped_as_invalid_message()
+		public async Task When_receiving_valid_message_it_should_not_throw()
 		{
 			var activator = new BuiltinHandlerActivator();
 			using IBus bus = CreateBus(activator, o => o.ValidateOutgoingMessages(_validatorFactoryMock.Object));
