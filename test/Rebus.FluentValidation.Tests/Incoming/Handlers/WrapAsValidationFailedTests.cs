@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
+using Rebus.Bus;
+using Rebus.FluentValidation.Logging;
 using Rebus.Logging;
 using Xunit;
 
@@ -47,6 +49,26 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 
 				// Assert
 				nextMock.Verify(func => func(), Times.Once);
+			}
+
+			[Fact]
+			public async Task It_should_log_info()
+			{
+				// Act
+				await _sut.ProcessAsync(StepContext, Next, ValidatorMock.Object, ValidationResult);
+
+				// Assert
+				LoggerFactory.LogEvents.Should()
+					.BeEquivalentTo(new LogEvent
+					{
+						Level = LogLevel.Info,
+						Message = "Validation -> {MessageType} {MessageId} is configured to be wrapped as " + typeof(IValidationFailed<>).FullName + ".",
+						FormatParameters = new object[]
+						{
+							Message.GetMessageType(),
+							Message.GetMessageId()
+						}
+					});
 			}
 		}
 	}

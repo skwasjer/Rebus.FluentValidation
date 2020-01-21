@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
+using Rebus.Bus;
+using Rebus.FluentValidation.Logging;
 using Rebus.Logging;
 using Rebus.Retry;
 using Xunit;
@@ -67,6 +69,26 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 
 				// Assert
 				nextMock.Verify(func => func(), Times.Never);
+			}
+
+			[Fact]
+			public async Task It_should_log_debug()
+			{
+				// Act
+				await _sut.ProcessAsync(StepContext, Next, ValidatorMock.Object, ValidationResult);
+
+				// Assert
+				LoggerFactory.LogEvents.Should()
+					.BeEquivalentTo(new LogEvent
+					{
+						Level = LogLevel.Debug,
+						Message = "Validation -> {MessageType} {MessageId} is configured to be moved to error queue.",
+						FormatParameters = new object[]
+						{
+							Message.GetMessageType(),
+							Message.GetMessageId()
+						}
+					});
 			}
 		}
 	}

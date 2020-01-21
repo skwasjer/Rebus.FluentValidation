@@ -8,6 +8,12 @@ namespace Rebus.FluentValidation.Logging
 	public class XunitRebusLoggerFactory : AbstractRebusLoggerFactory
 	{
 		private readonly ITestOutputHelper _testOutputHelper;
+		private static XunitRebusLoggerFactory _lf = new XunitRebusLoggerFactory();
+
+		public XunitRebusLoggerFactory()
+			: this(null)
+		{
+		}
 
 		public XunitRebusLoggerFactory(ITestOutputHelper testOutputHelper)
 		{
@@ -19,6 +25,11 @@ namespace Rebus.FluentValidation.Logging
 		protected override ILog GetLogger(Type type)
 		{
 			return new XunitLogger(this, type.Name);
+		}
+
+		public static string FormatMessage(string format, params object[] args)
+		{
+			return _lf.RenderString(format, args);
 		}
 
 		private class XunitLogger : ILog
@@ -68,17 +79,11 @@ namespace Rebus.FluentValidation.Logging
 				{
 					Level = level,
 					Message = message,
-					FormattedMessage = SafeFormat(message, objs),
 					FormatParameters = objs,
 					Exception = exception
 				};
 				_loggerFactory.LogEvents.Add(logEvent);
-				_loggerFactory._testOutputHelper.WriteLine($"{level}: {logEvent.FormattedMessage} {exception}");
-			}
-
-			private string SafeFormat(string message, object[] objs)
-			{
-				return _loggerFactory.RenderString(message, objs);
+				_loggerFactory._testOutputHelper?.WriteLine($"{level}: {logEvent.FormattedMessage} {exception}");
 			}
 		}
 

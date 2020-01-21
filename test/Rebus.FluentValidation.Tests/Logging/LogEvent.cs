@@ -7,9 +7,9 @@ namespace Rebus.FluentValidation.Logging
 	{
 		public LogLevel Level { get; set; }
 		public string Message { get; set; }
-		public string FormattedMessage { get; set; }
 		public object[] FormatParameters { get; set; }
 		public Exception Exception { get; set; }
+		public string FormattedMessage => XunitRebusLoggerFactory.FormatMessage(Message, FormatParameters);
 
 		public override string ToString()
 		{
