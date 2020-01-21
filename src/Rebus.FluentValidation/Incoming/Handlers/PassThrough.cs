@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
@@ -25,7 +26,7 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 		{
 			Message message = context.Load<Message>();
 
-			_logger.Warn("Validation -> {MessageType} {MessageId} is configured to pass through.", message.GetMessageType(), message.GetMessageId());
+			_logger.Warn(string.Format(CultureInfo.CurrentCulture, Resources.ValidationFailed_PassThrough, "{MessageType}", "{MessageId}"), message.GetMessageType(), message.GetMessageId());
 			return next();
 		}
 	}

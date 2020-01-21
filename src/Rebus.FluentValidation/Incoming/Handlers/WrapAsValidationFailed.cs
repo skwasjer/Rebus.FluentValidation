@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 using FluentValidation;
@@ -30,7 +31,7 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 			Message message = context.Load<Message>();
 			object body = message.Body;
 
-			_logger.Debug($"Validation -> {{MessageType}} {{MessageId}} is configured to be wrapped as {typeof(IValidationFailed<>).FullName}.", message.GetMessageType(), message.GetMessageId());
+			_logger.Info(string.Format(CultureInfo.CurrentCulture, Resources.ValidationFailed_WrapAsValidationFailed, "{MessageType}", "{MessageId}", typeof(IValidationFailed<>).FullName), message.GetMessageType(), message.GetMessageId());
 
 			Type validatorType = validator.GetType();
 			object wrappedBody = WrapMessage(body, message.Headers, validationResult, validatorType);

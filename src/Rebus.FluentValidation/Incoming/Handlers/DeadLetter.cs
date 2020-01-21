@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
@@ -31,7 +32,7 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 			TransportMessage transportMessage = context.Load<TransportMessage>();
 			ITransactionContext transactionContext = context.Load<ITransactionContext>();
 
-			_logger.Debug("Validation -> {MessageType} {MessageId} is configured to be moved to error queue.", transportMessage.GetMessageType(), transportMessage.GetMessageId());
+			_logger.Debug(string.Format(CultureInfo.CurrentCulture, Resources.ValidationFailed_MovingToErrorQueue, "{MessageType}", "{MessageId}"), transportMessage.GetMessageType(), transportMessage.GetMessageId());
 
 			Type validatorType = validator.GetType();
 			transportMessage.Headers[ValidateIncomingStep.ValidatorTypeKey] = validatorType.GetSimpleAssemblyQualifiedName();

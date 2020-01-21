@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
@@ -62,9 +63,13 @@ namespace Rebus.FluentValidation.Incoming
 				Type validatorType = validator.GetType();
 				message.Headers[ValidatorTypeKey] = validatorType.GetSimpleAssemblyQualifiedName();
 
-				if (!validationResult.IsValid)
+				if (validationResult.IsValid)
 				{
-					_logger.Debug($"Message {{MessageId}} failed to validate.{Environment.NewLine}{{ValidationResult}}", message.GetMessageId(), validationResult);
+					_logger.Debug(string.Format(CultureInfo.CurrentCulture, Resources.ValidationSucceeded, "{MessageId}", "{ValidationResult}"), message.GetMessageId(), validationResult);
+				}
+				else
+				{
+					_logger.Debug(string.Format(CultureInfo.CurrentCulture, Resources.ValidationFailed, "{MessageId}", "{ValidationResult}"), message.GetMessageId(), validationResult);
 
 					if (!_failHandlers.TryGetValue(messageType, out IValidationFailedStrategy handler))
 					{

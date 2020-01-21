@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using Rebus.Config;
 using Rebus.FluentValidation.Incoming.Handlers;
 using Rebus.Logging;
@@ -73,7 +74,7 @@ namespace Rebus.FluentValidation.Incoming
 			Type messageType = typeof(TMessage);
 			if (_registeredHandlerTypes.TryGetValue(messageType, out Type registeredHandlerType))
 			{
-				throw new ArgumentException($"The message type '{messageType.FullName}' is already configured to be handled by '{registeredHandlerType.FullName}'.");
+				throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Resources.ArgumentNullException_MessageTypeAlreadyConfigured, messageType.FullName, registeredHandlerType.FullName));
 			}
 
 			_registeredHandlerTypes[messageType] = typeof(TValidationFailedStrategy);
