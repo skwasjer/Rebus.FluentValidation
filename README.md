@@ -4,7 +4,7 @@ Message validation using [FluentValidation](https://fluentvalidation.net/) for [
 
 ---
 
-[![Build status](https://ci.appveyor.com/api/projects/status/n3t7ny3j7cryt92t/branch/master?svg=true)](https://ci.appveyor.com/project/skwasjer/rebus-fluentvalidation)
+[![Build status](https://ci.appveyor.com/api/projects/status/ucj1da4jgoi0xjd4/branch/master?svg=true)](https://ci.appveyor.com/project/skwasjer/rebus-fluentvalidation)
 [![Tests](https://img.shields.io/appveyor/tests/skwasjer/Rebus.FluentValidation/master.svg)](https://ci.appveyor.com/project/skwasjer/rebus-fluentvalidation/build/tests)
 [![codecov](https://codecov.io/gh/skwasjer/Rebus.FluentValidation/branch/master/graph/badge.svg)](https://codecov.io/gh/skwasjer/Rebus.FluentValidation)
 
