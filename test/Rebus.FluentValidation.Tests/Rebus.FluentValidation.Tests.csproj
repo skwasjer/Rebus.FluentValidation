@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFrameworks>netcoreapp2.2;net46;net462</TargetFrameworks>
     <RootNamespace>Rebus.FluentValidation</RootNamespace>
 
     <IsTestProject>true</IsTestProject>
@@ -13,7 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Rebus.FluentValidation\Rebus.FluentValidation.csproj" />
+    <ProjectReference Include="..\..\src\Rebus.FluentValidation\Rebus.FluentValidation.csproj" AdditionalProperties="TargetFramework=netstandard2.0" Condition="'$(TargetFramework)'=='netcoreapp2.2'" />
+    <ProjectReference Include="..\..\src\Rebus.FluentValidation\Rebus.FluentValidation.csproj" AdditionalProperties="TargetFramework=net45" Condition="'$(TargetFramework)'=='net46'" />
+    <ProjectReference Include="..\..\src\Rebus.FluentValidation\Rebus.FluentValidation.csproj" AdditionalProperties="TargetFramework=net46" Condition="'$(TargetFramework)'=='net462'" />
   </ItemGroup>
 
 </Project>

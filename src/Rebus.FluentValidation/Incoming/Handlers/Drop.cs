@@ -27,7 +27,11 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 
 			_logger.Debug("Validation -> {MessageType} {MessageId} is configured to be dropped.", message.GetMessageType(), message.GetMessageId());
 
+#if NET45
+			return Task.WhenAny();
+#else
 			return Task.CompletedTask;
+#endif
 		}
 	}
 }
