@@ -37,6 +37,9 @@ Configure
         // Configure strategy per incoming message.
         o.ValidateIncomingMessages(validatorFactory, v =>
         {
+            // Configure how messages that failed validation should be 
+            // handled:
+            
             // Move messages of type MessageType1 to error queue.
             v.DeadLetter<MessageType1>();
             // Drop messages of type MessageType2.
