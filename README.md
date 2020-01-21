@@ -36,8 +36,9 @@ Configure
         });
     });
 
-// If not explicitly configured, messages will be wrapped in IValidationFailed<> 
-// and can be handled using custom handler logic:
+// If not explicitly configured how to handle incoming messages that failed
+// validation, a message will be wrapped in IValidationFailed<> and should be 
+// handled using custom handler logic:
 public class MyService : IHandleMessages<IValidationFailed<MessageType4>>
 {
     Task Handle(IValidationFailed<MessageType4> message)
