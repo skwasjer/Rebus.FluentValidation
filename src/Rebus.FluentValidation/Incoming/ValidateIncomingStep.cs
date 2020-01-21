@@ -13,9 +13,9 @@ using Rebus.Pipeline;
 namespace Rebus.FluentValidation.Incoming
 {
 	/// <summary>
-	/// 
+	/// Step that validates incoming messages using FluentValidation and handles it using configured options (dead letter, drop, pass-through, wrap as <see cref="IValidationFailed{TMessage}"/>, etc. if validation fails.
 	/// </summary>
-	[StepDocumentation("")]
+	[StepDocumentation("Step that validates incoming messages using FluentValidation and handles it using configured options (dead letter, drop, pass-through, wrap as IValidationFailed<>, etc. if validation fails.")]
 	public sealed class ValidateIncomingStep : IIncomingStep
 	{
 		/// <summary>

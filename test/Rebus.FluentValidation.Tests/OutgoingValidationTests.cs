@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentValidation;
@@ -32,11 +33,15 @@ namespace Rebus.FluentValidation
 
 			// Assert
 			ValidationException ex = (await act.Should().ThrowAsync<ValidationException>()).Which;
-			ex.Errors.Should().HaveCount(1);
+			ex.Errors.Should()
+				.HaveCount(1)
+				.And.Subject.Single()
+				.PropertyName.Should()
+				.Be(nameof(TestMessage.ShouldPassValidation));
 		}
 
 		[Fact]
-		public async Task When_receiving_valid_message_it_should_be_wrapped_as_invalid_message()
+		public async Task When_receiving_valid_message_it_should_not_throw()
 		{
 			var activator = new BuiltinHandlerActivator();
 			using IBus bus = CreateBus(activator, o => o.ValidateOutgoingMessages(_validatorFactoryMock.Object));

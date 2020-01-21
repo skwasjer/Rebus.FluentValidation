@@ -8,8 +8,9 @@ using Rebus.Pipeline;
 namespace Rebus.FluentValidation.Outgoing
 {
 	/// <summary>
-	/// 
+	/// Step that validates outgoing messages using FluentValidation and throws a <see cref="ValidationException"/> if the validation failed.
 	/// </summary>
+	[StepDocumentation("Step that validates outgoing messages using FluentValidation and throws a 'ValidationException' if the validation failed.")]
 	public sealed class ValidateOutgoingStep : IOutgoingStep
 	{
 		private readonly IValidatorFactory _validatorFactory;
