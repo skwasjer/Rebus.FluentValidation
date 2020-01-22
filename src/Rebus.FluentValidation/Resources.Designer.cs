@@ -70,6 +70,24 @@ namespace Rebus.FluentValidation {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; method does not exist..
+        /// </summary>
+        internal static string InvalidOperationException_WrapMethodDoesNotExist {
+            get {
+                return ResourceManager.GetString("InvalidOperationException_WrapMethodDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not wrap {0} in ValidationFailedWrapper&lt;&gt;.
+        /// </summary>
+        internal static string RebusApplicationException_CouldNotWrapMessage {
+            get {
+                return ResourceManager.GetString("RebusApplicationException_CouldNotWrapMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Message {0} failed to validate.
         ///{1}.
         /// </summary>

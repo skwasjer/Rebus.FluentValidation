@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
 using Rebus.Bus;
+using Rebus.Exceptions;
 using Rebus.Handlers;
 using Rebus.Logging;
 using Rebus.Messages;
@@ -18,6 +19,8 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 	/// </summary>
 	internal class WrapAsValidationFailed : IValidationFailedStrategy
 	{
+		private const string WrapMethodName = nameof(Wrap);
+
 		private readonly ILog _logger;
 		private static readonly IDictionary<Type, MethodInfo> WrapperMethodCache = new Dictionary<Type, MethodInfo>();
 
@@ -48,15 +51,31 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 		)
 		{
 			Type messageType = message.GetType();
-			// ReSharper disable once InvertIf
-			if (!WrapperMethodCache.TryGetValue(messageType, out MethodInfo methodInfo))
+			MethodInfo methodInfo = GetWrapperMethod(messageType);
+			try
 			{
-				MethodInfo wrapMethodInfo = GetType().GetMethod(nameof(Wrap), BindingFlags.Static | BindingFlags.NonPublic);
-				methodInfo = wrapMethodInfo.MakeGenericMethod(messageType);
-				WrapperMethodCache[messageType] = methodInfo;
+				return methodInfo.Invoke(this, new[] { message, headers, validationResult, validatorType });
+			}
+			catch (Exception ex) when (!(ex is InvalidOperationException))
+			{
+				throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, Resources.RebusApplicationException_CouldNotWrapMessage, message), ex);
+			}
+		}
+
+		private MethodInfo GetWrapperMethod(Type messageType)
+		{
+			if (WrapperMethodCache.TryGetValue(messageType, out MethodInfo methodInfo))
+			{
+				return methodInfo;
 			}
 
-			return methodInfo.Invoke(this, new[] { message, headers, validationResult, validatorType });
+			MethodInfo wrapMethodInfo = GetType().GetMethod(WrapMethodName, BindingFlags.Static | BindingFlags.NonPublic);
+			if (wrapMethodInfo is null)
+			{
+				throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, Resources.InvalidOperationException_WrapMethodDoesNotExist, WrapMethodName));
+			}
+
+			return WrapperMethodCache[messageType] = wrapMethodInfo.MakeGenericMethod(messageType);
 		}
 
 		private static IValidationFailed<TMessage> Wrap<TMessage>(

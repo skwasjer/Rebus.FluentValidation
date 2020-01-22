@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Rebus.Bus;
+using Rebus.FluentValidation.Fixtures;
 using Rebus.FluentValidation.Logging;
 using Rebus.Logging;
+using Rebus.Messages;
 using Xunit;
 
 namespace Rebus.FluentValidation.Incoming.Handlers
@@ -69,6 +71,26 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 							Message.GetMessageId()
 						}
 					});
+			}
+
+			[Fact]
+			public async Task It_should_wrap_message_in_validation_failed()
+			{
+				Message message = StepContext.Load<Message>();
+				message.Body.Should().BeOfType<TestMessage>();
+
+				// Act
+				await _sut.ProcessAsync(StepContext, Next, ValidatorMock.Object, ValidationResult);
+
+				// Assert
+				Message newMessage = StepContext.Load<Message>();
+				IValidationFailed<TestMessage> wrappedMessageBody = newMessage.Body.Should()
+					.BeAssignableTo<IValidationFailed<TestMessage>>()
+					.Which;
+				wrappedMessageBody.Message.Should().BeSameAs(message.Body);
+				wrappedMessageBody.Headers.Should().BeSameAs(message.Headers);
+				wrappedMessageBody.ValidationResult.Should().BeSameAs(ValidationResult);
+				wrappedMessageBody.ValidatorType.Should().Be(ValidatorMock.Object.GetType());
 			}
 		}
 	}

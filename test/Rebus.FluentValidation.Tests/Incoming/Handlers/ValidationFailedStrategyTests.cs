@@ -34,7 +34,7 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 			var transportMessage = new TransportMessage(headers, new byte[0]);
 
 			StepContext = new IncomingStepContext(transportMessage, _tx.TransactionContext);
-			StepContext.Save(Message = new Message(headers, new byte[0]));
+			StepContext.Save(Message = new Message(headers, new TestMessage()));
 
 			ValidatorMock = new Mock<IValidator>();
 			ValidatorMock
