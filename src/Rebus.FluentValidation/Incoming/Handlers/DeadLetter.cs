@@ -29,13 +29,11 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 
 		public Task ProcessAsync(StepContext context, Func<Task> next, IValidator validator, ValidationResult validationResult)
 		{
-			TransportMessage transportMessage = context.Load<TransportMessage>();
+			OriginalTransportMessage originalTransportMessage = context.Load<OriginalTransportMessage>();
+			TransportMessage transportMessage = originalTransportMessage.TransportMessage;
 			ITransactionContext transactionContext = context.Load<ITransactionContext>();
 
 			_logger.Debug(string.Format(CultureInfo.CurrentCulture, Resources.ValidationFailed_MovingToErrorQueue, "{MessageType}", "{MessageId}"), transportMessage.GetMessageType(), transportMessage.GetMessageId());
-
-			Type validatorType = validator.GetType();
-			transportMessage.Headers[ValidateIncomingStep.ValidatorTypeKey] = validatorType.GetSimpleAssemblyQualifiedName();
 
 			var ex = new ValidationException(validationResult.Errors);
 			return _errorHandler.HandlePoisonMessage(transportMessage, transactionContext, ex);

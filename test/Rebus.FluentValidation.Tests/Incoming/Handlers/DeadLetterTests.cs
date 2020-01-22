@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
+using FluentValidation;
 using Moq;
 using Rebus.Bus;
 using Rebus.FluentValidation.Logging;
 using Rebus.Logging;
+using Rebus.Messages;
 using Rebus.Retry;
+using Rebus.Transport;
 using Xunit;
 
 namespace Rebus.FluentValidation.Incoming.Handlers
@@ -89,6 +93,61 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 							Message.GetMessageId()
 						}
 					});
+			}
+
+			[Fact]
+			public async Task Given_transport_message_is_replaced_it_should_forward_original_message_to_error_handler()
+			{
+				var newTransportMessage = new TransportMessage(new Dictionary<string, string>(), new byte[0]);
+				StepContext.Save(newTransportMessage);
+
+				TransportMessage originalTransportMessage = StepContext.Load<OriginalTransportMessage>().TransportMessage;
+				ITransactionContext transactionContext = StepContext.Load<ITransactionContext>();
+
+				// Act
+				await _sut.ProcessAsync(StepContext, Next, ValidatorMock.Object, ValidationResult);
+
+				// Assert
+				_errorHandlerMock.Verify(
+					m => m.HandlePoisonMessage(
+						originalTransportMessage,
+						transactionContext,
+						It.Is<Exception>(ex =>
+							ex.GetType() == typeof(ValidationException)
+						 && ((ValidationException)ex).Errors.Equals(ValidationResult.Errors))
+					),
+					Times.Once
+				);
+				_errorHandlerMock.Verify(
+					m => m.HandlePoisonMessage(
+						newTransportMessage,
+						It.IsAny<ITransactionContext>(),
+						It.IsAny<Exception>()
+					),
+					Times.Never
+				);
+			}
+
+			[Fact]
+			public async Task It_should_forward_to_error_handler()
+			{
+				TransportMessage transportMessage = StepContext.Load<OriginalTransportMessage>().TransportMessage;
+				ITransactionContext transactionContext = StepContext.Load<ITransactionContext>();
+
+				// Act
+				await _sut.ProcessAsync(StepContext, Next, ValidatorMock.Object, ValidationResult);
+
+				// Assert
+				_errorHandlerMock.Verify(
+					m => m.HandlePoisonMessage(
+						transportMessage,
+						transactionContext,
+						It.Is<Exception>(ex =>
+							ex.GetType() == typeof(ValidationException)
+						 && ((ValidationException)ex).Errors.Equals(ValidationResult.Errors))
+					),
+					Times.Once
+				);
 			}
 		}
 	}
