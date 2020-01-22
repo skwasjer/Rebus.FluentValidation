@@ -351,10 +351,6 @@ namespace Rebus.FluentValidation
 					.ContainKey(Headers.Type)
 					.WhichValue.Should()
 					.StartWith(typeof(TestMessage).FullName);
-				message.Headers.Should()
-					.ContainKey(ValidateIncomingStep.ValidatorTypeKey)
-					.WhichValue.Should()
-					.Be(typeof(TestMessageValidator).GetSimpleAssemblyQualifiedName());
 			}
 
 			_loggerFactory.LogEvents
