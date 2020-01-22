@@ -18,7 +18,7 @@ namespace Rebus.FluentValidation
 	public static class OptionsConfigurerExtensions
 	{
 		/// <summary>
-		/// Enables message validation for outgoing messages using FluentValidation.
+		/// Enables message validation for incoming and outgoing messages using FluentValidation.
 		/// <para>
 		/// When an outgoing message sent/published to the bus fails to validate, a <see cref="ValidationException"/> will be thrown immediately.
 		/// </para>
