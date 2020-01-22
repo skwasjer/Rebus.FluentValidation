@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using FluentValidation;
-using Rebus.Bus;
 using Rebus.Config;
 using Rebus.FluentValidation.Incoming;
 using Rebus.FluentValidation.Incoming.Handlers;
@@ -18,6 +17,24 @@ namespace Rebus.FluentValidation
 	/// </summary>
 	public static class OptionsConfigurerExtensions
 	{
+		/// <summary>
+		/// Enables message validation for outgoing messages using FluentValidation.
+		/// <para>
+		/// When an outgoing message sent/published to the bus fails to validate, a <see cref="ValidationException"/> will be thrown immediately.
+		/// </para>
+		/// <para>
+		/// When an incoming message fails to validate, by default it is wrapped in a <see cref="IValidationFailed{TMessage}"/> message and dispatched to handlers implementing this wrapped message type. Use the <paramref name="onFailed"/> builder to configure if messages should be handled differently (f.ex. move to error queue, drop, etc.).
+		/// </para>
+		/// </summary>
+		/// <param name="configurer">The options configurer.</param>
+		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
+		/// <param name="onFailed">A builder to configure how messages should be handled when validation fails.</param>
+		public static void ValidateMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Action<ValidationConfigurer> onFailed = null)
+		{
+			configurer.ValidateIncomingMessages(validatorFactory, onFailed);
+			configurer.ValidateOutgoingMessages(validatorFactory);
+		}
+
 		/// <summary>
 		/// Enables message validation for outgoing messages using FluentValidation.
 		/// <para>
@@ -59,26 +76,13 @@ namespace Rebus.FluentValidation
 		/// <summary>
 		/// Enables message validation for incoming messages using FluentValidation.
 		/// <para>
-		/// When an incoming message fails to validate, by default it is wrapped in a <see cref="IValidationFailed{TMessage}"/> message and dispatched to handlers implementing this wrapped message type.
-		/// </para>
-		/// </summary>
-		/// <param name="configurer">The options configurer.</param>
-		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
-		public static void ValidateIncomingMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory)
-		{
-			ValidateIncomingMessages(configurer, validatorFactory, _ => { });
-		}
-
-		/// <summary>
-		/// Enables message validation for incoming messages using FluentValidation.
-		/// <para>
 		/// When an incoming message fails to validate, by default it is wrapped in a <see cref="IValidationFailed{TMessage}"/> message and dispatched to handlers implementing this wrapped message type. Use the <paramref name="onFailed"/> builder to configure if messages should be handled differently (f.ex. move to error queue, drop, etc.).
 		/// </para>
 		/// </summary>
 		/// <param name="configurer">The options configurer.</param>
 		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
 		/// <param name="onFailed">A builder to configure how messages should be handled when validation fails.</param>
-		public static void ValidateIncomingMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Action<ValidationConfigurer> onFailed)
+		public static void ValidateIncomingMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Action<ValidationConfigurer> onFailed = null)
 		{
 			if (configurer is null)
 			{
