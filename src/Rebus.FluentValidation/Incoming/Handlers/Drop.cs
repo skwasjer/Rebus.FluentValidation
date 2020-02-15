@@ -29,7 +29,7 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 			_logger.Warn(string.Format(CultureInfo.CurrentCulture, Resources.ValidationFailed_Drop, "{MessageType}", "{MessageId}"), message.GetMessageType(), message.GetMessageId());
 
 #if NET45
-			var tcs = new TaskCompletionSource<object>();
+			var tcs = new TaskCompletionSource<object?>();
 			tcs.SetResult(null);
 			return tcs.Task;
 #else

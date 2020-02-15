@@ -29,7 +29,7 @@ namespace Rebus.FluentValidation
 		/// <param name="configurer">The options configurer.</param>
 		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
 		/// <param name="onFailed">A builder to configure how messages should be handled when validation fails.</param>
-		public static void ValidateMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Action<ValidationConfigurer> onFailed = null)
+		public static void ValidateMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Action<ValidationConfigurer>? onFailed = null)
 		{
 			configurer.ValidateIncomingMessages(validatorFactory, onFailed);
 			configurer.ValidateOutgoingMessages(validatorFactory);
@@ -82,7 +82,7 @@ namespace Rebus.FluentValidation
 		/// <param name="configurer">The options configurer.</param>
 		/// <param name="validatorFactory">The FluentValidation validator factory to resolve message validators from.</param>
 		/// <param name="onFailed">A builder to configure how messages should be handled when validation fails.</param>
-		public static void ValidateIncomingMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Action<ValidationConfigurer> onFailed = null)
+		public static void ValidateIncomingMessages(this OptionsConfigurer configurer, IValidatorFactory validatorFactory, Action<ValidationConfigurer>? onFailed = null)
 		{
 			if (configurer is null)
 			{
