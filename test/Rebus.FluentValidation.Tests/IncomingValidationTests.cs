@@ -12,6 +12,7 @@ using Rebus.FluentValidation.Fixtures;
 using Rebus.FluentValidation.Incoming;
 using Rebus.FluentValidation.PipelineCompletion;
 using Rebus.Messages;
+using Rebus.Pipeline;
 using Rebus.Transport.InMem;
 using Xunit;
 using Xunit.Abstractions;
@@ -28,6 +29,7 @@ namespace Rebus.FluentValidation
 		[Fact]
 		public async Task When_receiving_invalid_message_it_should_be_wrapped_as_invalid_message()
 		{
+			string messageId = null;
 			TestMessage receivedMessage = null;
 			IValidationFailed<TestMessage> failedMessage = null;
 			var sync = new ManualResetEvent(false);
@@ -41,10 +43,11 @@ namespace Rebus.FluentValidation
 					sync.Set();
 					return Task.CompletedTask;
 				})
-				.Handle<IValidationFailed<TestMessage>>(failed =>
+				.Handle<IValidationFailed<TestMessage>>((bus, context, failed) =>
 				{
 					// This should happen.
 					failedMessage = failed;
+					messageId = context.Message.GetMessageId();
 					sync.Set();
 					return Task.CompletedTask;
 				});
@@ -80,6 +83,10 @@ namespace Rebus.FluentValidation
 				.Select(le => le.Exception)
 				.Should()
 				.NotContain(ex => ex is MessageCouldNotBeDispatchedToAnyHandlersException);
+			_loggerFactory.LogEvents
+				.Select(le => le.ToString())
+				.Should()
+				.ContainMatch($"Debug: Message \"{messageId}\" failed to validate.*The specified condition was not met for 'Should Pass Validation'.*");
 			_loggerFactory.LogEvents
 				.Select(le => le.Message)
 				.Should()
@@ -193,15 +200,17 @@ namespace Rebus.FluentValidation
 		[Fact]
 		public async Task Given_passThrough_is_configured_when_receiving_invalid_message_it_should_be_normally_handled()
 		{
+			string messageId = null;
 			TestMessage receivedMessage = null;
 			var sync = new ManualResetEvent(false);
 
 			var activator = new BuiltinHandlerActivator();
 			activator
-				.Handle<TestMessage>(message =>
+				.Handle<TestMessage>((bus, context, message) =>
 				{
 					// This should happen.
 					receivedMessage = message;
+					messageId = context.Message.GetMessageId();
 					sync.Set();
 					return Task.CompletedTask;
 				});
@@ -234,6 +243,10 @@ namespace Rebus.FluentValidation
 				.Should()
 				.NotContain(ex => ex is MessageCouldNotBeDispatchedToAnyHandlersException);
 			_loggerFactory.LogEvents
+				.Select(le => le.ToString())
+				.Should()
+				.ContainMatch($"Debug: Message \"{messageId}\" failed to validate.*The specified condition was not met for 'Should Pass Validation'.*");
+			_loggerFactory.LogEvents
 				.Select(le => le.Message)
 				.Should()
 				.ContainMatch("*is configured to pass through.");
@@ -242,6 +255,7 @@ namespace Rebus.FluentValidation
 		[Fact]
 		public async Task Given_drop_is_configured_when_receiving_invalid_message_it_should_be_dropped()
 		{
+			string messageId = null;
 			TestMessage receivedMessage = null;
 			TestMessage droppedMessage = null;
 			var sync = new ManualResetEvent(false);
@@ -265,6 +279,7 @@ namespace Rebus.FluentValidation
 					o.OnPipelineCompletion<TestMessage>(failed =>
 					{
 						droppedMessage = failed;
+						messageId = MessageContext.Current.Message.GetMessageId();
 						sync.Set();
 					});
 				}))
@@ -291,6 +306,10 @@ namespace Rebus.FluentValidation
 				.Should()
 				.NotContain(ex => ex is MessageCouldNotBeDispatchedToAnyHandlersException);
 			_loggerFactory.LogEvents
+				.Select(le => le.ToString())
+				.Should()
+				.ContainMatch($"Debug: Message \"{messageId}\" failed to validate.*The specified condition was not met for 'Should Pass Validation'.*");
+			_loggerFactory.LogEvents
 				.Select(le => le.Message)
 				.Should()
 				.ContainMatch("*is configured to be dropped.");
@@ -299,6 +318,7 @@ namespace Rebus.FluentValidation
 		[Fact]
 		public async Task Given_deadLetter_is_configured_when_receiving_invalid_message_it_should_be_moved_to_error_queue()
 		{
+			string messageId = null;
 			TestMessage receivedMessage = null;
 			var sync = new ManualResetEvent(false);
 
@@ -321,6 +341,7 @@ namespace Rebus.FluentValidation
 					);
 					o.OnPipelineCompletion<TestMessage>(failed =>
 					{
+						messageId = MessageContext.Current.Message.GetMessageId();
 						sync.Set();
 					});
 				},
@@ -357,6 +378,10 @@ namespace Rebus.FluentValidation
 				.Select(le => le.Exception)
 				.Should()
 				.NotContain(ex => ex is MessageCouldNotBeDispatchedToAnyHandlersException);
+			_loggerFactory.LogEvents
+				.Select(le => le.ToString())
+				.Should()
+				.ContainMatch($"Debug: Message \"{messageId}\" failed to validate.*The specified condition was not met for 'Should Pass Validation'.*");
 			_loggerFactory.LogEvents
 				.Select(le => le.Message)
 				.Should()
