@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Rebus" Version="5.4.1" Condition="'$(TargetFramework)'!='netcoreapp3.1'" />
     <PackageReference Include="Rebus" Version="6.0.0" Condition="'$(TargetFramework)'=='netcoreapp3.1'" />
+    <PackageReference Include="FluentValidation" Version="8.6.1" />
   </ItemGroup>
 
   <ItemGroup>
