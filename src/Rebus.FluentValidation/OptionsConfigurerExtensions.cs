@@ -55,7 +55,14 @@ namespace Rebus.FluentValidation
 				throw new ArgumentNullException(nameof(validatorFactory));
 			}
 
-			configurer.Register(ctx => new ValidateOutgoingStep(validatorFactory));
+			configurer.Register(ctx =>
+			{
+				IRebusLoggerFactory loggerFactory = ctx.Get<IRebusLoggerFactory>();
+				return new ValidateOutgoingStep(
+					loggerFactory.GetLogger<ValidateIncomingStep>(),
+					validatorFactory
+				);
+			});
 
 			configurer.Decorate<IPipeline>(ctx =>
 			{

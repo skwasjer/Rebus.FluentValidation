@@ -7,13 +7,14 @@ using Rebus.Activation;
 using Rebus.Bus;
 using Rebus.FluentValidation.Fixtures;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Rebus.FluentValidation
 {
 	public class OutgoingValidationTests : BusValidationTests
 	{
-		public OutgoingValidationTests()
-			: base(null)
+		public OutgoingValidationTests(ITestOutputHelper testOutputHelper)
+			: base(testOutputHelper)
 		{
 		}
 
@@ -38,6 +39,11 @@ namespace Rebus.FluentValidation
 				.And.Subject.Single()
 				.PropertyName.Should()
 				.Be(nameof(TestMessage.ShouldPassValidation));
+
+			_loggerFactory.LogEvents
+				.Select(le => le.ToString())
+				.Should()
+				.ContainMatch($"Debug: Message \"*{nameof(TestMessage)}*\" failed to validate.*The specified condition was not met for 'Should Pass Validation'.*");
 		}
 
 		[Fact]
