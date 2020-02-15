@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
 using Rebus.Bus;
-using Rebus.Exceptions;
 using Rebus.Handlers;
 using Rebus.Logging;
 using Rebus.Messages;
