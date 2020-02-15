@@ -142,7 +142,7 @@
   <data name="InvalidOperationException_WrapMethodDoesNotExist" xml:space="preserve">
     <value>The '{0}' method does not exist.</value>
   </data>
-  <data name="RebusApplicationException_CouldNotWrapMessage" xml:space="preserve">
+  <data name="InvalidOperationException_CouldNotWrapMessage" xml:space="preserve">
     <value>Could not wrap {0} in ValidationFailedWrapper&lt;&gt;</value>
   </data>
 </root>

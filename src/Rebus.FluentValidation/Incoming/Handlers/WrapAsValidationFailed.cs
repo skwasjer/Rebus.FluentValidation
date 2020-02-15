@@ -57,7 +57,7 @@ namespace Rebus.FluentValidation.Incoming.Handlers
 			}
 			catch (Exception ex) when (!(ex is InvalidOperationException))
 			{
-				throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, Resources.RebusApplicationException_CouldNotWrapMessage, message), ex);
+				throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, Resources.InvalidOperationException_CouldNotWrapMessage, message), ex);
 			}
 		}
 
