@@ -65,7 +65,7 @@ namespace Rebus.FluentValidation.Incoming
 
 				if (validationResult.IsValid)
 				{
-					_logger.Debug(string.Format(CultureInfo.CurrentCulture, Resources.ValidationSucceeded, "{MessageId}", "{ValidationResult}"), message.GetMessageId(), validationResult);
+					_logger.Debug(string.Format(CultureInfo.CurrentCulture, Resources.ValidationSucceeded, "{MessageId}"), message.GetMessageId());
 				}
 				else
 				{

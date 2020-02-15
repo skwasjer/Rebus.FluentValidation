@@ -134,7 +134,7 @@ namespace Rebus.FluentValidation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Message {0} successfully validate..
+        ///   Looks up a localized string similar to Message {0} validated successfully..
         /// </summary>
         internal static string ValidationSucceeded {
             get {

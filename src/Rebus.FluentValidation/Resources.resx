@@ -137,12 +137,12 @@
     <value>The message type '{0}' is already configured to be handled by '{1}'.</value>
   </data>
   <data name="ValidationSucceeded" xml:space="preserve">
-      <value>Message {0} successfully validate.</value>
+    <value>Message {0} validated successfully.</value>
   </data>
   <data name="InvalidOperationException_WrapMethodDoesNotExist" xml:space="preserve">
-      <value>The '{0}' method does not exist.</value>
+    <value>The '{0}' method does not exist.</value>
   </data>
   <data name="RebusApplicationException_CouldNotWrapMessage" xml:space="preserve">
-      <value>Could not wrap {0} in ValidationFailedWrapper&lt;&gt;</value>
+    <value>Could not wrap {0} in ValidationFailedWrapper&lt;&gt;</value>
   </data>
 </root>
