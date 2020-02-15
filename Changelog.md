@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.0
+
+- Added .NET Standard 2.1 target (depends on Rebus v6.x). The other target frameworks are compatible with Rebus v5.x/v6.x.
+- Enabled non-nullable reference types
+- Fix log message
+
 ## v1.0.3
 
 - fix XML doc, wrong description
