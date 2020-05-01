@@ -389,5 +389,81 @@ namespace Rebus.FluentValidation
 				.And
 				.ContainMatch("Moving message with ID *");
 		}
+
+		[Fact]
+		public async Task Given_multiple_are_configured_when_receiving_invalid_message_it_should_select_appropriate_strategy()
+		{
+			string messageId1 = null;
+			string messageId2 = null;
+			TestMessage1 receivedMessage1 = null;
+			TestMessage2 receivedMessage2 = null;
+			var sync = new AutoResetEvent(false);
+
+			var activator = new BuiltinHandlerActivator();
+			activator
+				.Handle<TestMessage1>((bus, context, message) =>
+				{
+					// This should happen.
+					receivedMessage1 = message;
+					messageId1 = context.Message.GetMessageId();
+					sync.Set();
+					return Task.CompletedTask;
+				})
+				.Handle<TestMessage2>((bus, context, message) =>
+				{
+					// This should not happen.
+					receivedMessage2 = message;
+					messageId2 = context.Message.GetMessageId();
+					sync.Set();
+					return Task.CompletedTask;
+				});
+
+			using (IBus bus = CreateBus(activator,
+				o =>
+				{
+					o.ValidateIncomingMessages(_validatorFactoryMock.Object,
+						v => v
+							.PassThrough<TestMessage1>()
+							.Drop<TestMessage2>()
+					);
+
+					o.OnPipelineCompletion<TestMessage2>(failed =>
+					{
+						receivedMessage2 = failed;
+						messageId2 = MessageContext.Current.Message.GetMessageId();
+						sync.Set();
+					});
+				}))
+			{
+				// Act
+				await bus.Send(new TestMessage1
+				{
+					ShouldPassValidation = false
+				});
+
+				await bus.Send(new TestMessage2
+				{
+					ShouldPassValidation = false
+				});
+
+				// Assert
+				sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
+				sync.WaitOne(Debugger.IsAttached ? -1 : 5000);
+
+				receivedMessage1.Should().NotBeNull();
+				receivedMessage2.Should().NotBeNull();
+			}
+
+			var logMessages = _loggerFactory.LogEvents
+				.Select(le => le.ToString())
+				.ToList();
+
+			logMessages
+				.Should()
+				.ContainMatch($"*\"{messageId1}\" is configured to pass through.*");
+			logMessages
+				.Should()
+				.ContainMatch($"*\"{messageId2}\" is configured to be dropped.*");
+		}
 	}
 }

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using Rebus.Config;
 using Rebus.FluentValidation.Incoming.Handlers;
+using Rebus.Injection;
 using Rebus.Logging;
 using Rebus.Retry;
 
@@ -14,17 +15,32 @@ namespace Rebus.FluentValidation.Incoming
 	/// </summary>
 	public class ValidationConfigurer
 	{
+		private class HandlerRegistration
+		{
+			public Type MessageType { get; set; }
+			public Type StrategyType { get; set; }
+			public Func<IResolutionContext, IValidationFailedStrategy> ImplementationFactory { get; set; }
+		}
+
 		private readonly OptionsConfigurer _configurer;
 		private readonly Dictionary<Type, IValidationFailedStrategy> _handlers;
-		private readonly Dictionary<Type, Type> _registeredHandlerTypes;
+		private readonly Dictionary<Type, HandlerRegistration> _registeredHandlerTypes;
 
 		internal ValidationConfigurer(OptionsConfigurer configurer)
 		{
 			_configurer = configurer;
 			_handlers = new Dictionary<Type, IValidationFailedStrategy>();
-			_registeredHandlerTypes = new Dictionary<Type, Type>();
+			_registeredHandlerTypes = new Dictionary<Type, HandlerRegistration>();
 
-			_configurer.Register(_ => (IReadOnlyDictionary<Type, IValidationFailedStrategy>)new ReadOnlyDictionary<Type, IValidationFailedStrategy>(_handlers));
+			_configurer.Register(ctx =>
+			{
+				foreach (HandlerRegistration registration in _registeredHandlerTypes.Values)
+				{
+					_handlers[registration.MessageType] = registration.ImplementationFactory(ctx);
+				}
+
+				return (IReadOnlyDictionary<Type, IValidationFailedStrategy>)new ReadOnlyDictionary<Type, IValidationFailedStrategy>(_handlers);
+			});
 
 			_configurer.Register(ctx => new Drop(
 				ctx.Get<IRebusLoggerFactory>().GetLogger<Drop>()
@@ -72,18 +88,17 @@ namespace Rebus.FluentValidation.Incoming
 			where TValidationFailedStrategy : IValidationFailedStrategy
 		{
 			Type messageType = typeof(TMessage);
-			if (_registeredHandlerTypes.TryGetValue(messageType, out Type registeredHandlerType))
+			if (_registeredHandlerTypes.TryGetValue(messageType, out HandlerRegistration registeredHandlerType))
 			{
-				throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Resources.ArgumentNullException_MessageTypeAlreadyConfigured, messageType.FullName, registeredHandlerType.FullName));
+				throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Resources.ArgumentNullException_MessageTypeAlreadyConfigured, messageType.FullName, registeredHandlerType.StrategyType.FullName));
 			}
 
-			_registeredHandlerTypes[messageType] = typeof(TValidationFailedStrategy);
-
-			_configurer.Decorate(ctx =>
+			_registeredHandlerTypes[messageType] = new HandlerRegistration
 			{
-				_handlers[messageType] = ctx.Get<TValidationFailedStrategy>();
-				return (IReadOnlyDictionary<Type, IValidationFailedStrategy>)_handlers;
-			});
+				MessageType = messageType,
+				StrategyType = typeof(TValidationFailedStrategy),
+				ImplementationFactory = ctx => ctx.Get<TValidationFailedStrategy>()
+			};
 
 			return this;
 		}

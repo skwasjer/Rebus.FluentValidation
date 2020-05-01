@@ -26,7 +26,7 @@ namespace Rebus.FluentValidation
 		{
 			_validatorFactoryMock = new Mock<IValidatorFactory>();
 			_validatorFactoryMock
-				.Setup(m => m.GetValidator(typeof(TestMessage)))
+				.Setup(m => m.GetValidator(It.Is<Type>(type => typeof(TestMessage).IsAssignableFrom(type))))
 				.Returns(new TestMessageValidator());
 
 			_loggerFactory = testOutputHelper == null
