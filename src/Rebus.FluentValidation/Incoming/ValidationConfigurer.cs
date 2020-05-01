@@ -32,7 +32,15 @@ namespace Rebus.FluentValidation.Incoming
 			_handlers = new Dictionary<Type, IValidationFailedStrategy>();
 			_registeredHandlerTypes = new Dictionary<Type, HandlerRegistration>();
 
-			_configurer.Register(_ => (IReadOnlyDictionary<Type, IValidationFailedStrategy>)new ReadOnlyDictionary<Type, IValidationFailedStrategy>(_handlers));
+			_configurer.Register(ctx =>
+			{
+				foreach (HandlerRegistration registration in _registeredHandlerTypes.Values)
+				{
+					_handlers[registration.MessageType] = registration.ImplementationFactory(ctx);
+				}
+
+				return (IReadOnlyDictionary<Type, IValidationFailedStrategy>)new ReadOnlyDictionary<Type, IValidationFailedStrategy>(_handlers);
+			});
 
 			_configurer.Register(ctx => new Drop(
 				ctx.Get<IRebusLoggerFactory>().GetLogger<Drop>()
@@ -91,16 +99,6 @@ namespace Rebus.FluentValidation.Incoming
 				StrategyType = typeof(TValidationFailedStrategy),
 				ImplementationFactory = ctx => ctx.Get<TValidationFailedStrategy>()
 			};
-
-			_configurer.Decorate(ctx =>
-			{
-				foreach (HandlerRegistration registration in _registeredHandlerTypes.Values)
-				{
-					_handlers[registration.MessageType] = registration.ImplementationFactory(ctx);
-				}
-
-				return (IReadOnlyDictionary<Type, IValidationFailedStrategy>)_handlers;
-			});
 
 			return this;
 		}
