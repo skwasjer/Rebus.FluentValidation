@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.0
+
+- fixes last registered strategy being the only active strategy.
+
 ## v1.1.0
 
 - Added .NET Standard 2.1 target (depends on Rebus v6.x). The other target frameworks are compatible with Rebus v5.x/v6.x.
